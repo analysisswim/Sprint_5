@@ -1,2 +1,17 @@
 .venv/
 .venv/
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Reports/coverage
+.coverage
+htmlcov/
