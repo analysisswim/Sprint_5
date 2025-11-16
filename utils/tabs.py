@@ -1,8 +1,6 @@
-# helpers/tabs.py
 from selenium.webdriver.common.by import By
 
 def is_tab_active(driver, text: str) -> bool:
-    # активная вкладка: либо контейнер с классом current, либо span с aria-selected="true"
     xp1 = (
         "//div[contains(@class,'tab') and "
         "(contains(@class,'current') or contains(@class,'tab_type_current'))]"

@@ -1,52 +1,25 @@
 Stellar Burgers — Selenium автотесты (Sprint 5)
 
-Учебный проект по автоматизации UI-тестов сервиса Stellar Burgers.
-Покрывает регистрацию, авторизацию разными путями, переходы между разделами, выход из аккаунта и вкладки «Конструктора».
-
 Что проверяем (соответствие требованиям)
-
 Регистрация
-tests/test_registration.py::test_registration_success — успешная регистрация (имя не пустое, email в формате login@domain, пароль ≥ 6 символов).
-tests/test_registration.py::test_registration_error_short_password — ошибка при слишком коротком пароле.
+tests/test_registration.py::TestRegistration::test_success_registration — успешная регистрация (имя не пустое, email в формате login@domain, пароль ≥ 6 символов).
+tests/test_registration.py::TestRegistration::test_invalid_password_shows_error — ошибка при слишком коротком пароле.
 
 Вход
-tests/test_login.py::test_login_via_main_button — по кнопке «Войти в аккаунт» на главной.
-tests/test_login.py::test_login_via_header_lk — через «Личный кабинет».
-tests/test_login.py::test_login_from_register_form — через кнопку в форме регистрации.
-tests/test_login.py::test_login_from_recovery_form — через кнопку в форме восстановления пароля.
+tests/test_login.py::TestLogin::test_login_via_main_button — вход по кнопке «Войти в аккаунт» на главной.
+tests/test_login.py::TestLogin::test_login_via_header_lk — вход через «Личный кабинет» в шапке.
+tests/test_login.py::TestLogin::test_login_from_register_form — вход из формы регистрации (ссылка «Войти»).
+tests/test_login.py::TestLogin::test_login_from_recovery_form — вход из формы восстановления пароля (ссылка «Войти»).
 
 Личный кабинет и навигация
-tests/test_navigation.py::test_go_to_account — переход в ЛК по «Личный кабинет».
-tests/test_navigation.py::test_back_to_constructor_by_button_and_logo — возврат в «Конструктор» по кнопке и по логотипу.
+tests/test_navigation.py::TestNavigation::test_go_to_account — переход в ЛК по «Личный кабинет».
+tests/test_navigation.py::TestNavigation::test_back_to_constructor_by_button_and_logo — возврат в «Конструктор» по кнопке и по логотипу.
 
 Выход
-tests/test_logout.py::test_logout — выход по кнопке «Выйти» в личном кабинете.
+tests/test_logout.py::TestLogout::test_logout — выход по кнопке «Выход» в личном кабинете.
 
-Раздел «Конструктор»
-tests/test_constructor_tabs.py::test_tabs_switch — переключения «Булки», «Соусы», «Начинки».
-
-Структура проекта:
-Sprint_5/
-├─ conftest.py                 # фикстуры: драйвер, базовый URL, кросс-браузерный запуск
-├─ pytest.ini                  # настройки pytest (маркеры, опции)
-├─ helpers/
-│  ├─ __init__.py
-│  ├─ overlays.py              # убийца модальных/оверлеев + ожидание их отсутствия
-│  └─ clicks.py                # безопасный клик (с прокруткой/JS-фолбэком)
-├─ utils/
-│  ├─ __init__.py
-│  └─ data.py                  # локаторы и тестовые константы
-├─ tests/
-│  ├─ __init__.py
-│  ├─ test_registration.py
-│  ├─ test_login.py
-│  ├─ test_navigation.py
-│  ├─ test_constructor_tabs.py
-│  └─ test_logout.py
-└─ requirements.txt
-
-
-
+Конструктор
+tests/test_constructor_tabs.py::TestConstructorTabs::test_tab_switch — переключения вкладок «Булки», «Соусы», «Начинки».
 
 ## Setup
 python3 -m venv .venv
@@ -63,6 +36,5 @@ pytest -q
 pytest -q --browser=firefox
 # или часть:
 pytest -q -k login
-pytest -q -m smoke
 # Запуск одного файла
 pytest -q tests/test_registration.py

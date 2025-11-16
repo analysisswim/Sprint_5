@@ -22,7 +22,7 @@ class TestLogin:
         wait = WebDriverWait(driver, 15)
 
         safe_click(driver, wait, MAIN_LOGIN_BTN)
-        wait.until(EC.url_contains("/login"))            # <— ключевое ожидание
+        wait.until(EC.url_contains("/login"))
         self._fill_and_submit_login(driver, wait)
 
         wait.until(EC.visibility_of_element_located(ORDER_BTN))

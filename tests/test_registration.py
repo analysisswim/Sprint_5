@@ -7,7 +7,6 @@ from utils.locators import (
     MAIN_LOGIN_BTN, LOGIN_REGISTER_LINK,
     REG_NAME, REG_EMAIL, REG_PASSWORD, REG_SUBMIT, REG_LOGIN_LINK,
     ORDER_BTN, ERROR_HINT,
-    # добавим локаторы логина для последующего входа:
     LOGIN_EMAIL, LOGIN_PASSWORD, LOGIN_SUBMIT
 )
 from helpers.overlays import kill_overlays
@@ -28,26 +27,23 @@ class TestRegistration:
         safe_click(driver, wait, LOGIN_REGISTER_LINK)
         wait.until(EC.url_contains("/register"))
 
-        email = self._unique_email()  # сохраняем для последующего логина
+        email = self._unique_email()
 
         wait.until(EC.visibility_of_element_located(REG_NAME)).send_keys("Auto User")
         driver.find_element(*REG_EMAIL).send_keys(email)
         driver.find_element(*REG_PASSWORD).send_keys("12345Zz")
         safe_click(driver, wait, REG_SUBMIT)
 
-        # Проект обычно перебрасывает на /login (без авто-входа).
         wait.until(EC.any_of(
             EC.url_contains("/login"),
             EC.visibility_of_element_located(ORDER_BTN),
         ))
 
-        # Если на /login — логинимся только что созданным пользователем.
         if "/login" in driver.current_url:
             wait.until(EC.visibility_of_element_located(LOGIN_EMAIL)).send_keys(email)
             driver.find_element(*LOGIN_PASSWORD).send_keys("12345Zz")
             safe_click(driver, wait, LOGIN_SUBMIT)
 
-        # Финальная проверка авторизации
         wait.until(EC.visibility_of_element_located(ORDER_BTN))
         assert driver.find_elements(*ORDER_BTN), "После регистрации/логина нет кнопки 'Оформить заказ'"
 
@@ -69,6 +65,5 @@ class TestRegistration:
         wait.until(EC.visibility_of_element_located(ERROR_HINT))
         assert driver.find_elements(*ERROR_HINT), "Не появилась ошибка о некорректном пароле"
 
-        # вернёмся на /login для чистоты
         safe_click(driver, wait, REG_LOGIN_LINK)
         wait.until(EC.url_contains("/login"))

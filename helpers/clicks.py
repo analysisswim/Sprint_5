@@ -1,4 +1,3 @@
-# helpers/clicks.py
 from selenium.webdriver.support import expected_conditions as EC
 
 def safe_click(driver, wait, locator):

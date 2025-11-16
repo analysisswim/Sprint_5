@@ -29,17 +29,14 @@ class TestLogout:
 
         self._login(driver, wait)
 
-        # перейти в ЛК и дождаться признаков страницы
         safe_click(driver, wait, LK_LINK)
         wait.until(EC.any_of(
             EC.url_contains("/account"),
             EC.visibility_of_element_located(ACCOUNT_LOGOUT_BTN)
         ))
 
-        # логаут
         safe_click(driver, wait, ACCOUNT_LOGOUT_BTN)
 
-        # подтверждаем, что разлогинились (оказались на /login или видим кнопку входа на главной)
         assert wait.until(EC.any_of(
             EC.url_contains("/login"),
             EC.visibility_of_element_located(MAIN_LOGIN_BTN:=('xpath',"//button[normalize-space()='Войти в аккаунт']"))
