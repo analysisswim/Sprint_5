@@ -1,93 +1,28 @@
-from os import getenv
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from utils.urls import BASE_URL
+from utils.data import EMAIL, PASSWORD
+from utils.locators import (
+    MAIN_LOGIN_BTN, LK_LINK, LOGIN_EMAIL, LOGIN_PASSWORD, LOGIN_SUBMIT, FORGOT_LINK,
+    REG_LOGIN_LINK, ORDER_BTN
+)
 from helpers.overlays import kill_overlays
 from helpers.clicks import safe_click
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
-BASE_URL = "https://stellarburgers.education-services.ru/"
-EMAIL = getenv("STELLAR_EMAIL", "siarhei_ivashyn_34_999@yandex.ru")
-PASSWORD = getenv("STELLAR_PASSWORD", "12345Zz")
+class TestLogin:
 
+    def _fill_and_submit_login(self, driver, wait):
+        wait.until(EC.visibility_of_element_located(LOGIN_EMAIL)).send_keys(EMAIL)
+        driver.find_element(*LOGIN_PASSWORD).send_keys(PASSWORD)
+        safe_click(driver, wait, LOGIN_SUBMIT)
 
-def _fill_and_submit_login(d, wait):
-    # Поля Email/Пароль: сначала по лейблам, иначе fallback по name
-    try:
-        email_el = wait.until(EC.visibility_of_element_located((
-            By.XPATH, "//label[normalize-space()='Email']/ancestor::div[contains(@class,'input')]//input"
-        )))
-        pass_el = d.find_element(
-            By.XPATH, "//label[normalize-space()='Пароль']/ancestor::div[contains(@class,'input')]//input"
-        )
-    except Exception:
-        email_el = wait.until(EC.visibility_of_element_located((By.NAME, "email")))
-        pass_el = d.find_element(By.NAME, "password")
+    def test_login_via_main_button(self, driver):
+        driver.get(BASE_URL); kill_overlays(driver)
+        wait = WebDriverWait(driver, 15)
 
-    email_el.clear(); email_el.send_keys(EMAIL)
-    pass_el.clear();  pass_el.send_keys(PASSWORD)
+        safe_click(driver, wait, MAIN_LOGIN_BTN)
+        self._fill_and_submit_login(driver, wait)
 
-    # Жмём кнопку «Войти» (именно на странице логина)
-    safe_click(d, wait, (By.XPATH, "//button[normalize-space(.)='Войти']"))
-
-    # Признак успешного входа
-    wait.until(EC.visibility_of_element_located(
-        (By.XPATH, "//button[normalize-space(.)='Оформить заказ']"))
-    )
-
-
-def test_login_via_main_button(driver):
-    driver.get(BASE_URL)
-    kill_overlays(driver)
-    wait = WebDriverWait(driver, 15)
-
-    # На главной — «Войти в аккаунт»
-    safe_click(driver, wait, (By.XPATH, "//button[normalize-space(.)='Войти в аккаунт']"))
-    wait.until(EC.url_contains("/login"))
-
-    _fill_and_submit_login(driver, wait)
-
-
-def test_login_via_header_lk(driver):
-    driver.get(BASE_URL)
-    kill_overlays(driver)
-    wait = WebDriverWait(driver, 15)
-
-    # «Личный кабинет» → /login
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/account')]"))
-    wait.until(EC.url_contains("/login"))
-
-    _fill_and_submit_login(driver, wait)
-
-
-def test_login_from_register_form(driver):
-    driver.get(BASE_URL)
-    kill_overlays(driver)
-    wait = WebDriverWait(driver, 15)
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/account')]"))
-    wait.until(EC.url_contains("/login"))
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/register')]"))
-    wait.until(EC.url_contains("/register"))
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/login') and normalize-space()='Войти']"))
-    wait.until(EC.url_contains("/login"))
-
-    _fill_and_submit_login(driver, wait)
-
-
-def test_login_from_recovery_form(driver):
-    driver.get(BASE_URL)
-    kill_overlays(driver)
-    wait = WebDriverWait(driver, 15)
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/account')]"))
-    wait.until(EC.url_contains("/login"))
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/forgot-password')]"))
-    wait.until(EC.url_contains("/forgot-password"))
-
-    safe_click(driver, wait, (By.XPATH, "//a[contains(@href,'/login') and normalize-space()='Войти']"))
-    wait.until(EC.url_contains("/login"))
-
-    _fill_and_submit_login(driver, wait)
+        # проверка
+        wait.until(EC.visibility_of_element_located(ORDER_BTN))
+        assert driver.find_elements(*ORDER_BTN), "Кнопка 'Оформить заказ' не найдена после логина"

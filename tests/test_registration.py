@@ -3,8 +3,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from helpers.overlays import kill_overlays
 from utils.generators import uniq_email
+from utils.urls import BASE_URL
 
-BASE_URL = "https://stellarburgers.education-services.ru/"
+
 
 LK_LINK       = (By.XPATH, "//a[contains(@href,'/account')]")
 REG_LINK      = (By.XPATH, "//a[contains(@href,'/register')]")
