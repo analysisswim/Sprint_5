@@ -1,75 +1,74 @@
-from selenium.webdriver.common.by import By
+import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from helpers.overlays import kill_overlays
-from utils.generators import uniq_email
+
 from utils.urls import BASE_URL
+from utils.locators import (
+    MAIN_LOGIN_BTN, LOGIN_REGISTER_LINK,
+    REG_NAME, REG_EMAIL, REG_PASSWORD, REG_SUBMIT, REG_LOGIN_LINK,
+    ORDER_BTN, ERROR_HINT,
+    # добавим локаторы логина для последующего входа:
+    LOGIN_EMAIL, LOGIN_PASSWORD, LOGIN_SUBMIT
+)
+from helpers.overlays import kill_overlays
+from helpers.clicks import safe_click
 
 
+class TestRegistration:
+    def _unique_email(self):
+        return f"auto_{int(time.time())}@ya.ru"
 
-LK_LINK       = (By.XPATH, "//a[contains(@href,'/account')]")
-REG_LINK      = (By.XPATH, "//a[contains(@href,'/register')]")
-BTN_REGISTER  = (By.XPATH, "//button[normalize-space()='Зарегистрироваться']")
-TO_LOGIN_LINK = (By.XPATH, "//a[contains(@href,'/login') and normalize-space()='Войти']")
-NAME_INPUT_L  = (By.XPATH, "//label[normalize-space()='Имя']/ancestor::div[contains(@class,'input')]//input")
-EMAIL_INPUT_L = (By.XPATH, "//label[normalize-space()='Email']/ancestor::div[contains(@class,'input')]//input")
-PASS_INPUT_L  = (By.XPATH, "//label[normalize-space()='Пароль']/ancestor::div[contains(@class,'input')]//input")
-EMAIL_FALL    = (By.NAME, "email")
-NAME_FALL     = (By.NAME, "name")
-PASS_FALL     = (By.NAME, "password")
+    def test_success_registration(self, driver):
+        driver.get(BASE_URL); kill_overlays(driver)
+        wait = WebDriverWait(driver, 15)
 
-def _open_register(driver, wait):
-    driver.get(BASE_URL)
-    kill_overlays(driver)
-    driver.find_element(*LK_LINK).click()
-    wait.until(EC.url_contains("/login"))
-    driver.find_element(*REG_LINK).click()
-    wait.until(EC.url_contains("/register"))
+        safe_click(driver, wait, MAIN_LOGIN_BTN)
+        wait.until(EC.url_contains("/login"))
 
-def test_registration_success(driver):
-    wait = WebDriverWait(driver, 15)
-    _open_register(driver, wait)
+        safe_click(driver, wait, LOGIN_REGISTER_LINK)
+        wait.until(EC.url_contains("/register"))
 
-    # поля
-    try:
-        name  = wait.until(EC.visibility_of_element_located(NAME_INPUT_L))
-        email = driver.find_element(*EMAIL_INPUT_L)
-        pwd   = driver.find_element(*PASS_INPUT_L)
-    except Exception:
-        name  = wait.until(EC.visibility_of_element_located(NAME_FALL))
-        email = driver.find_element(*EMAIL_FALL)
-        pwd   = driver.find_element(*PASS_FALL)
+        email = self._unique_email()  # сохраняем для последующего логина
 
-    email_val = uniq_email()
-    name.send_keys("Siarhei")
-    email.send_keys(email_val)
-    pwd.send_keys("12345Zz")            # 6+ символов, буквы разного регистра + цифры — ок
-    driver.find_element(*BTN_REGISTER).click()
+        wait.until(EC.visibility_of_element_located(REG_NAME)).send_keys("Auto User")
+        driver.find_element(*REG_EMAIL).send_keys(email)
+        driver.find_element(*REG_PASSWORD).send_keys("12345Zz")
+        safe_click(driver, wait, REG_SUBMIT)
 
-    # после успешной регистрации должна открыться страница логина
-    wait.until(EC.url_contains("/login"))
+        # Проект обычно перебрасывает на /login (без авто-входа).
+        wait.until(EC.any_of(
+            EC.url_contains("/login"),
+            EC.visibility_of_element_located(ORDER_BTN),
+        ))
 
-def test_registration_error_short_password(driver):
-    wait = WebDriverWait(driver, 15)
-    _open_register(driver, wait)
+        # Если на /login — логинимся только что созданным пользователем.
+        if "/login" in driver.current_url:
+            wait.until(EC.visibility_of_element_located(LOGIN_EMAIL)).send_keys(email)
+            driver.find_element(*LOGIN_PASSWORD).send_keys("12345Zz")
+            safe_click(driver, wait, LOGIN_SUBMIT)
 
-    try:
-        name  = wait.until(EC.visibility_of_element_located(NAME_INPUT_L))
-        email = driver.find_element(*EMAIL_INPUT_L)
-        pwd   = driver.find_element(*PASS_INPUT_L)
-    except Exception:
-        name  = wait.until(EC.visibility_of_element_located(NAME_FALL))
-        email = driver.find_element(*EMAIL_FALL)
-        pwd   = driver.find_element(*PASS_FALL)
+        # Финальная проверка авторизации
+        wait.until(EC.visibility_of_element_located(ORDER_BTN))
+        assert driver.find_elements(*ORDER_BTN), "После регистрации/логина нет кнопки 'Оформить заказ'"
 
-    name.send_keys("Siarhei")
-    email.send_keys(uniq_email())
-    pwd.send_keys("12345")  # короче 6
+    def test_invalid_password_shows_error(self, driver):
+        driver.get(BASE_URL); kill_overlays(driver)
+        wait = WebDriverWait(driver, 15)
 
-    driver.find_element(*BTN_REGISTER).click()
+        safe_click(driver, wait, MAIN_LOGIN_BTN)
+        wait.until(EC.url_contains("/login"))
 
-    # ожидаем сообщение об ошибке под полем пароля
-    err = wait.until(EC.visibility_of_element_located(
-        (By.XPATH, "//*[contains(text(),'Некорректный') or contains(text(),'парол')]")
-    ))
-    assert err.is_displayed()
+        safe_click(driver, wait, LOGIN_REGISTER_LINK)
+        wait.until(EC.url_contains("/register"))
+
+        wait.until(EC.visibility_of_element_located(REG_NAME)).send_keys("Auto User")
+        driver.find_element(*REG_EMAIL).send_keys(self._unique_email())
+        driver.find_element(*REG_PASSWORD).send_keys("123")   # меньше 6
+        safe_click(driver, wait, REG_SUBMIT)
+
+        wait.until(EC.visibility_of_element_located(ERROR_HINT))
+        assert driver.find_elements(*ERROR_HINT), "Не появилась ошибка о некорректном пароле"
+
+        # вернёмся на /login для чистоты
+        safe_click(driver, wait, REG_LOGIN_LINK)
+        wait.until(EC.url_contains("/login"))

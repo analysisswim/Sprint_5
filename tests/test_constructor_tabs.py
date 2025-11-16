@@ -5,7 +5,7 @@ from utils.urls import BASE_URL
 from utils.locators import TAB_BUNS, TAB_SAUCES, TAB_FILLING
 from helpers.overlays import kill_overlays
 from helpers.clicks import safe_click
-from helpers.tabs import wait_tab_active, is_tab_active
+from utils.tabs import wait_tab_active, is_tab_active
 
 class TestConstructorTabs:
 
