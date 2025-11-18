@@ -38,3 +38,4 @@ pytest -q --browser=firefox
 pytest -q -k login
 # Запуск одного файла
 pytest -q tests/test_registration.py
+# Sprint_6
