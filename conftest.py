@@ -33,7 +33,4 @@ def driver(request):
         drv = webdriver.Firefox(options=fopts)
 
     yield drv
-    try:
-        drv.delete_all_cookies()
-    finally:
-        drv.quit()
+    drv.quit()
