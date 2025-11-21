@@ -1,10 +1,12 @@
 # tests/test_faq.py
 import pytest
+import allure
 from selenium.webdriver.support.ui import WebDriverWait
 
 from pages.main_page import MainPage
 
 
+@allure.title("FAQ: ответ не пустой (все вопросы)")
 # На сайте 8 вопросов в FAQ (индексы 0–7)
 @pytest.mark.parametrize("index", range(8))
 def test_faq_answer_not_empty(driver, index):

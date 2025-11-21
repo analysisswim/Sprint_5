@@ -1,5 +1,6 @@
 # tests/test_order.py
 import pytest
+import allure
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -15,6 +16,7 @@ ORDER_DATA = [
 ]
 
 
+@allure.title("Оформление заказа: позитивный сценарий (две точки входа)")
 @pytest.mark.parametrize(
     "button_index, name, surname, address, phone, date_text, comment",
     ORDER_DATA,
@@ -31,6 +33,7 @@ def test_make_order_positive_flow(driver, button_index, name, surname, address, 
     assert order_page.is_success_modal_visible()
 
 
+@allure.title("Переход на главную со страницы заказа по логотипу «Самоката»")
 def test_click_scooter_logo_returns_to_main(driver):
     # Открываем страницу заказа через кнопку "Заказать" сверху
     main_page = MainPage(driver)
@@ -44,6 +47,7 @@ def test_click_scooter_logo_returns_to_main(driver):
     assert "qa-scooter.praktikum-services.ru" in order_page.get_current_url()
 
 
+@allure.title("Переход в Dzen по клику на логотип Яндекса")
 def test_click_yandex_logo_opens_dzen(driver):
     main_page = MainPage(driver)
 
